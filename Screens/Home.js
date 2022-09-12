@@ -3,10 +3,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useContext } from 'react';
 import { TextField } from '@mui/material';
 import MuiButton from "@mui/material/button";
-import Card from "@mui/material/Card"
+import Card from "@mui/material/Card";
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
 import { SwipeablePanel } from 'rn-swipeable-panel';
 import { AppContext } from "../context";
 import { useEffect } from 'react';
+import NftTile from './Elements/NftTile';
 
 const pictureAbi = require("../assets/contract/pictureNft.json");
 const Web3 = require('web3');
@@ -80,15 +83,7 @@ export default function Home({ navigation }) {
 
   return <View>
     <View style={styles.mainView}>
-      {nftList.length > 0 ? nftList.map((nftItem, index) => <Card key={index}
-        variant="outlined"
-        sx={{
-          height: "75px",
-          minWidth: "75px",
-          width: "45%",
-          marginLeft: "5px"
-        }}
-      >sddssd</Card>) : "f"}
+      {nftList.length > 0 ? nftList.map((nftItem, index) => <NftTile key={index} title={"fffff"} openPressed={() => { alert('ssss') }}> </NftTile>) : "f"}
     </View>
 
     <SwipeablePanel {...nftPanelProps} isActive={isNftEdit} >
