@@ -34,27 +34,21 @@ const styles = StyleSheet.create({
   }
 });
 
+const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
+
 export default function Home({ navigation }) {
-  async function createToken(contract, tokenUri) {
-    return Promise.resolve({})
-    //  return contract.methods.createToken(tokenUri).send({ from: "0xD8294863573c8E57D496AF0918c37aA801df834f", gas: 6721975 }).catch(() => { return true });
-  }
-  const [tokenUri, setTokenUri] = useState("");
 
-  const [isNftEdit, setNftEdit] = useState(false);
+  let contract;
   const { privateKey, dispatchKeyEvent } = useContext(AppContext);
-
-  AsyncStorage.getItem('privateKey').then((privateKey) => {
-    dispatchKeyEvent("CHANGE_KEY", privateKey)
-  });
-
+  const [tokenUri, setTokenUri] = useState("");
+  const [isNftEdit, setNftEdit] = useState(false);
   const [nftList, setNftList] = useState(async () => {
-    const data = await AsyncStorage.getItem('nftList') //get data and store them in constat
+    const data = await AsyncStorage.getItem('nftList');
     console.log(data);
     setNftList(data.split(",") || null);
-  })
+  });
 
-  const [nftPanelProps, setNftPanelProps] = useState({
+  const [nftPanelProps] = useState({
     style: {
       top: "70%",
       paddingTop: "45px"
@@ -66,6 +60,12 @@ export default function Home({ navigation }) {
     onPressCloseButton: () => { setNftEdit(false) }
   });
 
+  AsyncStorage.getItem("privateKey").then((storedPrivateKey) => {
+    dispatchKeyEvent("CHANGE_KEY", storedPrivateKey);
+    web3.eth.accounts.privateKeyToAccount(privateKey);
+    contract = new web3.eth.Contract(pictureAbi.abi, "0xae5f095b94129186498839bcb151d4256Bf9b957");
+  });
+
   React.useLayoutEffect(() => {
 
     navigation.setOptions({
@@ -75,26 +75,37 @@ export default function Home({ navigation }) {
     });
   }, [navigation]);
   //let [tokensTotal, setTotal] = useState(-1)
-  /*const web3 = new Web3(
-    new Web3.providers.HttpProvider('http://localhost:7545')
-  );
-  web3.eth.accounts.privateKeyToAccount(privateKey);*/
-  // const contract = new web3.eth.Contract(pictureAbi.abi, "0xae5f095b94129186498839bcb151d4256Bf9b957");
+  /*
+  */
+  // 
+
+  async function createToken(contract, tokenUri) {
+    return contract.methods.createToken(tokenUri).send({ from: privateKey, gas: 6721975 }).catch(() => { return true });
+  };
+
+  async function saveNewToken(token) {
+    const stgNftList = [...nftList, token];
+    setNftList(stgNftList);
+    AsyncStorage.setItem("nftList", JSON.stringify(stgNftList));
+  }
 
   return <View>
+
     <View style={styles.mainView}>
       {nftList.length > 0 ? nftList.map((nftItem, index) => <NftTile key={index} title={"fffff"} openPressed={() => { alert('ssss') }}> </NftTile>) : "f"}
     </View>
 
     <SwipeablePanel {...nftPanelProps} isActive={isNftEdit} >
+
       <TextField label="Nft URI" onChange={(event) => { setTokenUri(event.target.value) }} sx={{ m: 3, mt: 5 }} focused />
-      <Pressable onPress={(e) => createToken(undefined, tokenUri).then((t) => {
-        const stgNftList = [...nftList, t];
-        setNftList(stgNftList);
-        AsyncStorage.setItem("nftList", JSON.stringify(stgNftList));
-      })} style={styles.button}>
+
+      <Pressable onPress={(e) => createToken(contract, tokenUri).then(saveNewToken)} style={styles.button}>
+
         <Text style={styles.buttonText}>MINT</Text>
+
       </Pressable >
+
     </SwipeablePanel>
+
   </View >
 }

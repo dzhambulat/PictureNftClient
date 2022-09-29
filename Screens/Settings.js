@@ -7,19 +7,20 @@ import { AppContext } from "../context";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Settings() {
-    const [key, setKeyValue] = useState(async () => {
-        const data = await AsyncStorage.getItem('privateKey') //get data and store them in constat
-        setKeyValue(data || null);
-    });
     const { privateKey, dispatchKeyEvent } = useContext(AppContext);
 
+    function setPrivateKeyItem(key) {
+        dispatchKeyEvent("CHANGE_KEY", key);
+        AsyncStorage.setItem("privateKey", key);
+    }
+
     return <View>
-        <TextField value={key} onChange={(event) => { setKeyValue(event.target.value) }} label="Private key" sx={{ m: 3, mt: 5 }} focused />
-        <MuiButton onClick={() => {
-            dispatchKeyEvent("CHANGE_KEY", key);
-            AsyncStorage.setItem("privateKey", key);
-        }} sx={{ color: "#0a8258", backgroundColor: "grey", marginLeft: 3, marginRight: 3 }} >
+
+        <TextField value={privateKey} onChange={(event) => { setKeyValue(event.target.value) }} label="Private key" sx={{ m: 3, mt: 5 }} focused />
+
+        <MuiButton onClick={() => { setPrivateKeyItem }} sx={{ color: "#0a8258", backgroundColor: "grey", marginLeft: 3, marginRight: 3 }} >
             SAVE
         </MuiButton>
+
     </View>
 }
