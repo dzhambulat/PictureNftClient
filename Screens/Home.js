@@ -1,14 +1,10 @@
-import { StyleSheet, Pressable, View, Text } from 'react-native';
+import { StyleSheet, Pressable, View, Text, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useContext } from 'react';
 import { TextField } from '@mui/material';
 import MuiButton from "@mui/material/button";
-import Card from "@mui/material/Card";
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
 import { SwipeablePanel } from 'rn-swipeable-panel';
 import { AppContext } from "../context";
-import { useEffect } from 'react';
 import NftTile from './Elements/NftTile';
 
 const pictureAbi = require("../assets/contract/pictureNft.json");
@@ -38,10 +34,13 @@ const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
 
 export default function Home({ navigation }) {
 
-  let contract;
+  let contract = new web3.eth.Contract(pictureAbi.abi, "0xB96C4Ca6c450F2Ca4e916d02dD91C525BB483744");
+
   const { privateKey, dispatchKeyEvent } = useContext(AppContext);
   const [tokenUri, setTokenUri] = useState("");
+  const [nftName, setNftName] = useState("");
   const [isNftEdit, setNftEdit] = useState(false);
+
   const [nftList, setNftList] = useState(async () => {
     const data = await AsyncStorage.getItem('nftList');
     console.log(data);
@@ -50,7 +49,7 @@ export default function Home({ navigation }) {
 
   const [nftPanelProps] = useState({
     style: {
-      top: "70%",
+      top: "20%",
       paddingTop: "45px"
     },
     fullWidth: true,
@@ -61,29 +60,33 @@ export default function Home({ navigation }) {
   });
 
   AsyncStorage.getItem("privateKey").then((storedPrivateKey) => {
+    if (!storedPrivateKey) {
+      return;
+    }
     dispatchKeyEvent("CHANGE_KEY", storedPrivateKey);
-    web3.eth.accounts.privateKeyToAccount(privateKey);
-    contract = new web3.eth.Contract(pictureAbi.abi, "0xae5f095b94129186498839bcb151d4256Bf9b957");
+    if (privateKey === storedPrivateKey) {
+      return;
+    }
+    web3.eth.accounts.privateKeyToAccount(storedPrivateKey);
   });
 
   React.useLayoutEffect(() => {
-
     navigation.setOptions({
       headerRight: () => (
         <MuiButton onClick={() => setNftEdit(true)} sx={{ color: "#fff", backgroundColor: "#0a8258", marginRight: 1, textDecoration: "bold" }}>+</MuiButton>
       ),
     });
   }, [navigation]);
-  //let [tokensTotal, setTotal] = useState(-1)
-  /*
-  */
-  // 
 
   async function createToken(contract, tokenUri) {
-    return contract.methods.createToken(tokenUri).send({ from: privateKey, gas: 6721975 }).catch(() => { return true });
+    console.log(tokenUri);
+    return contract.methods.createToken(tokenUri).send({ from: "0x54dCda810Bd3208b7AE32A3294Debbda72fD4980", gas: 6721975 });
   };
 
-  async function saveNewToken(token) {
+  async function saveNewToken({ tokenUri, nftName }) {
+    const token = {
+      tokenUri, nftName, tokenId
+    }
     const stgNftList = [...nftList, token];
     setNftList(stgNftList);
     AsyncStorage.setItem("nftList", JSON.stringify(stgNftList));
@@ -92,18 +95,19 @@ export default function Home({ navigation }) {
   return <View>
 
     <View style={styles.mainView}>
-      {nftList.length > 0 ? nftList.map((nftItem, index) => <NftTile key={index} title={"fffff"} openPressed={() => { alert('ssss') }}> </NftTile>) : "f"}
+      {nftList.length > 0 ? nftList.map((nftItem, index) => <NftTile key={index} title={nftItem.nftName} openPressed={() => { alert('ssss') }}> </NftTile>) : "f"}
     </View>
 
     <SwipeablePanel {...nftPanelProps} isActive={isNftEdit} >
 
-      <TextField label="Nft URI" onChange={(event) => { setTokenUri(event.target.value) }} sx={{ m: 3, mt: 5 }} focused />
+      <TextField label="NFT URI" onChange={(event) => { setTokenUri(event.target.value) }} sx={{ m: 3, mt: 5 }} focused />
+      <TextField label="NFT name" onChange={(event) => { setNftName(event.target.value) }} sx={{ m: 3, mt: 5 }} focused />
 
-      <Pressable onPress={(e) => createToken(contract, tokenUri).then(saveNewToken)} style={styles.button}>
+      <Button onPress={(e) => createToken(contract, tokenUri).then((tokenId) => saveNewToken({ tokenId, tokenUri, nftName })).catch((error) => { console.log(error) })} style={styles.button}>
 
         <Text style={styles.buttonText}>MINT</Text>
 
-      </Pressable >
+      </Button >
 
     </SwipeablePanel>
 
