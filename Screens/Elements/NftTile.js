@@ -12,7 +12,7 @@ export default function NftTile({ title, openPressed }) {
     return <Card sx={{
         height: "175px",
         minWidth: "75px",
-        width: "45%",
+        width: "40%",
         marginLeft: "5px",
         marginTop: "15px"
     }}>

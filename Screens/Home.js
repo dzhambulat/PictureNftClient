@@ -27,7 +27,10 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#0a8258"
-  }
+  },
+  container: {
+    flex: 1
+  },
 });
 
 const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
@@ -83,7 +86,7 @@ export default function Home({ navigation }) {
     return contract.methods.createToken(tokenUri).send({ from: "0x54dCda810Bd3208b7AE32A3294Debbda72fD4980", gas: 6721975 });
   };
 
-  async function saveNewToken({ tokenUri, nftName }) {
+  async function saveNewToken({ tokenUri, nftName, tokenId }) {
     const token = {
       tokenUri, nftName, tokenId
     }
@@ -94,12 +97,8 @@ export default function Home({ navigation }) {
 
   return <View>
     <SafeAreaView>
-      <FlatList data={nftList} renderItem={(item) => { <NftTile title={item.nftName} openPressed={() => { alert('ssss') }} keyExtractor={key => key} /> }}>
-
+      <FlatList styles={styles.container} data={nftList} renderItem={(item) => <NftTile title={item.nftName} openPressed={() => { alert('ssss') }} keyExtractor={item => item.tokenId} />}>
       </FlatList>
-      <View style={styles.mainView}>
-        {nftList.length > 0 ? nftList.map((nftItem, index) => <NftTile key={index} title={nftItem.nftName} openPressed={() => { alert('ssss') }}> </NftTile>) : "f"}
-      </View>
     </SafeAreaView>
 
     <SwipeablePanel {...nftPanelProps} isActive={isNftEdit} >
