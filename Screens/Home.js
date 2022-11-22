@@ -1,4 +1,4 @@
-import { StyleSheet, Pressable, View, Text, Button } from 'react-native';
+import { StyleSheet, FlatList, View, Text, Button, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useContext } from 'react';
 import { TextField } from '@mui/material';
@@ -93,10 +93,14 @@ export default function Home({ navigation }) {
   }
 
   return <View>
+    <SafeAreaView>
+      <FlatList data={nftList} renderItem={(item) => { <NftTile title={item.nftName} openPressed={() => { alert('ssss') }} keyExtractor={key => key} /> }}>
 
-    <View style={styles.mainView}>
-      {nftList.length > 0 ? nftList.map((nftItem, index) => <NftTile key={index} title={nftItem.nftName} openPressed={() => { alert('ssss') }}> </NftTile>) : "f"}
-    </View>
+      </FlatList>
+      <View style={styles.mainView}>
+        {nftList.length > 0 ? nftList.map((nftItem, index) => <NftTile key={index} title={nftItem.nftName} openPressed={() => { alert('ssss') }}> </NftTile>) : "f"}
+      </View>
+    </SafeAreaView>
 
     <SwipeablePanel {...nftPanelProps} isActive={isNftEdit} >
 
