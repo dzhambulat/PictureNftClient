@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
-import Home from './Screens/Home';
+import HomeScreen from './Screens/Home';
 import Settings from './Screens/Settings';
 import { AppContext } from "./context";
 
@@ -48,7 +48,7 @@ export default function App() {
             }
           })
         } >
-          <MainTab.Screen name="Home" component={Home} />
+          <MainTab.Screen name="Home" component={HomeScreen} />
           <MainTab.Screen name="Key" component={Settings} />
         </MainTab.Navigator>
       </NavigationContainer >
