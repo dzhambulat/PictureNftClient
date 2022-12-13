@@ -39,13 +39,7 @@ export default function App() {
               return <Ionicons name={iconName} size={size} color={color} />;
             },
             tabBarActiveTintColor: '#0a8258',
-            headerStyle: {
-              backgroundColor: '#0a8258',
-            },
-            headerTintColor: '#fff',
-            headerTitleStyle: {
-              fontWeight: 'bold',
-            }
+            headerShown: false
           })
         } >
           <MainTab.Screen name="Home" component={HomeScreen} />

@@ -1,4 +1,4 @@
-import { StyleSheet, FlatList, View, Text, Button, SafeAreaView } from 'react-native';
+import { StyleSheet, FlatList, View, Text, TextInput, Button, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useContext } from 'react';
 import { TextField } from '@mui/material';
@@ -6,6 +6,8 @@ import MuiButton from "@mui/material/button";
 import { SwipeablePanel } from 'rn-swipeable-panel';
 import { AppContext } from "../../context";
 import NftTile from './NftTile';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
 
 const pictureAbi = require("../../assets/contract/pictureNft.json");
 const Web3 = require('web3');
@@ -84,9 +86,11 @@ export default function NftList({ navigation }) {
         }
         console.log(data);
         setNftList(data || null);
+        setCurrentNftList(data || null)
         //setNftList(data.split(",") || null);
-
     });
+
+    const [currentNftList, setCurrentNftList] = useState([]);
 
     const [nftPanelProps] = useState({
         style: {
@@ -124,6 +128,16 @@ export default function NftList({ navigation }) {
         return contract.methods.createToken(tokenUri).send({ from: "0x54dCda810Bd3208b7AE32A3294Debbda72fD4980", gas: 6721975 });
     };
 
+    async function onFilterNft(text) {
+        if (!text.length) {
+            setCurrentNftList(nftList);
+            return;
+        }
+
+        const result = nftList.filter((nft) => nft.nftName.includes(text))
+        setCurrentNftList(result);
+    }
+
     async function saveNewToken({ tokenUri, nftName, tokenId }) {
         const token = {
             tokenUri, nftName, tokenId
@@ -134,10 +148,31 @@ export default function NftList({ navigation }) {
     }
 
     return <View>
-        <SafeAreaView>
-            <FlatList styles={styles.flatList} data={nftList} renderItem={(dataItem) => <NftTile details={dataItem.item} openPressed={() => { navigation.navigate("NftDetails", { details: dataItem.item }) }} />} keyExtractor={item => item.tokenId}>
+        <SafeAreaView style={{
+            marginTop: "20px",
+            flex: 1,
+            flexDirection: "column"
+        }}>
+            <View style={{ marginLeft: "5px", flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <TextInput style={{
+                    height: "40px",
+                    width: "70%",
+                    backgroundColor: "grey",
+                    borderRadius: "5px",
+                    paddingLeft: 10,
+                }} placeholder="Search NFT" onChangeText={onFilterNft}></TextInput>
+                <View style={{ width: "40px", height: "40px", marginRight: "5px", borderRadius: "50%" }}>
+                    <TouchableOpacity onPress={() => setNftEdit(true)}>
+                        <Ionicons name="add-circle-outline" color="#0a8258" style={{ fontSize: "40px" }} />
+                    </TouchableOpacity>
+                </View>
+
+
+            </View>
+
+            <FlatList styles={styles.flatList} data={currentNftList} renderItem={(dataItem) => <NftTile details={dataItem.item} openPressed={() => { navigation.navigate("NftDetails", { details: dataItem.item }) }} />} keyExtractor={item => item.tokenId}>
             </FlatList>
-        </SafeAreaView>
+        </SafeAreaView >
 
         <SwipeablePanel {...nftPanelProps} isActive={isNftEdit} >
 
