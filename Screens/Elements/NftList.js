@@ -36,11 +36,11 @@ const styles = StyleSheet.create({
     },
 });
 
-const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
+const web3 = new Web3(new Web3.providers.HttpProvider('https://goerli.infura.io/v3/aa753fba2bce4aeda63ffb979a0ed295'));
 
 export default function NftList({ navigation }) {
 
-    let contract = new web3.eth.Contract(pictureAbi.abi, "0xB96C4Ca6c450F2Ca4e916d02dD91C525BB483744");
+    let contract = new web3.eth.Contract(pictureAbi.abi, "0x84f382Bc7eE06d0862230072174e763fF7acaa57");
 
     const { privateKey, dispatchKeyEvent } = useContext(AppContext);
     const [tokenUri, setTokenUri] = useState("");
@@ -85,8 +85,8 @@ export default function NftList({ navigation }) {
             ]
         }
         console.log(data);
-        setNftList(data || null);
-        setCurrentNftList(data || null)
+        setNftList(JSON.parse(data) || null);
+        setCurrentNftList(JSON.parse(data) || null)
         //setNftList(data.split(",") || null);
     });
 
@@ -94,7 +94,8 @@ export default function NftList({ navigation }) {
 
     const [nftPanelProps] = useState({
         style: {
-            top: "20%",
+            position: "absolute",
+            top: "-290px",
             paddingTop: "45px"
         },
         fullWidth: true,
@@ -124,9 +125,34 @@ export default function NftList({ navigation }) {
     }, [navigation]);
 
     async function createToken(contract, tokenUri) {
-        console.log(tokenUri);
-        return contract.methods.createToken(tokenUri).send({ from: "0x54dCda810Bd3208b7AE32A3294Debbda72fD4980", gas: 6721975 });
+        const signerAddress = "0xAD1DDE70a803fcBc22A9172b524CF230EB0e6FDD";
+        const smartContractAddress = "0x84f382Bc7eE06d0862230072174e763fF7acaa57";
+        const tx = {
+            from: signerAddress,
+            to: smartContractAddress,
+            value: "0x0",
+            gas: 1021975,
+            nonce: web3.eth.getTransactionCount(signerAddress),
+            maxPriorityFeePerGas: web3.utils.toHex(web3.utils.toWei('0.0055', 'gwei')),
+            data: contract.methods.createToken(tokenUri).encodeABI()
+        };
+        console.log(privateKey)
+        const signedTx = await web3.eth.accounts.signTransaction(tx, privateKey);
+        return web3.eth.sendSignedTransaction(signedTx.rawTransaction).then(function (receipt) { const tokenId = getTokenIdFromReceipt(receipt); return { tokenId, tokenUri } })
+
     };
+
+    function getTokenIdFromReceipt(receipt) {
+        const TOPICS_COUNT = 4;
+        const logs = receipt.logs && receipt.logs[0];
+        if (logs) {
+            const topics = logs.topics;
+            if (topics && topics.length === TOPICS_COUNT) {
+                const tokenId = topics[3];
+                return tokenId;
+            }
+        }
+    }
 
     async function onFilterNft(text) {
         if (!text.length) {
@@ -170,7 +196,7 @@ export default function NftList({ navigation }) {
 
             </View>
 
-            <FlatList styles={styles.flatList} data={currentNftList} renderItem={(dataItem) => <NftTile details={dataItem.item} openPressed={() => { navigation.navigate("NftDetails", { details: dataItem.item }) }} />} keyExtractor={item => item.tokenId}>
+            <FlatList styles={styles.flatList} data={currentNftList} renderItem={(dataItem) => <NftTile details={dataItem.item} openPressed={() => { navigation.navigate("NftDetails", { details: dataItem.item }) }} />} keyExtractor={item => Number.parseInt(item.tokenId)}>
             </FlatList>
         </SafeAreaView >
 
@@ -179,7 +205,7 @@ export default function NftList({ navigation }) {
             <TextField label="NFT URI" onChange={(event) => { setTokenUri(event.target.value) }} sx={{ m: 3, mt: 5 }} focused />
             <TextField label="NFT name" onChange={(event) => { setNftName(event.target.value) }} sx={{ m: 3, mt: 5 }} focused />
 
-            <Button onPress={(e) => createToken(contract, tokenUri).then((tokenId) => saveNewToken({ tokenId, tokenUri, nftName })).catch((error) => { console.log(error) })} style={styles.button}>
+            <Button onPress={(e) => createToken(contract, tokenUri).then(({ tokenId, tokenUri }) => { saveNewToken({ tokenId, tokenUri, nftName }) }).catch((error) => { console.log(error) })} style={styles.button}>
 
                 <Text style={styles.buttonText}>MINT</Text>
 
