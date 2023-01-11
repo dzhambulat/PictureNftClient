@@ -196,7 +196,13 @@ export default function NftList({ navigation }) {
 
             </View>
 
-            <FlatList styles={styles.flatList} data={currentNftList} renderItem={(dataItem) => <NftTile details={dataItem.item} openPressed={() => { navigation.navigate("NftDetails", { details: dataItem.item }) }} />} keyExtractor={item => Number.parseInt(item.tokenId)}>
+            <FlatList styles={styles.flatList}
+                data={currentNftList}
+                renderItem={
+                    (dataItem) => <NftTile details={dataItem.item}
+                        openPressed={() => { navigation.navigate("NftDetails", { details: dataItem.item }) }}
+                    />}
+                keyExtractor={item => Number.parseInt(item.tokenId)}>
             </FlatList>
         </SafeAreaView >
 
